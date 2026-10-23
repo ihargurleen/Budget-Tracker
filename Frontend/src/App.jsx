@@ -1,67 +1,63 @@
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
-import Layout from './Common/Layout';
-import Signin from "./Pages/auth/Signin";
-import Signup from "./Pages/auth/Signup";
-import Budget from "./Pages/Budget";
-import CreateBudget from "./Pages/CreateBudget";
-import Dashboard from "./Pages/Dashboard";
-import BudgetDetails from "./Pages/auth/budgetDetails";
-import { AuthProvider } from "./Context/AuthContext";
-import ProtectedRoute from "./Utils/ProtectedRoute";
-import Signout from "./Pages/auth/signout";
-const App = () => {
-  const router = createBrowserRouter([
-{
-  path: "/",
-  element: <Layout/>,
-  children: [
-    {
-      path: "/",
-      element: <Dashboard/>
-    },
-    {
-      path: "/budget",
-      element: <Budget/>,
-    },
-    // {
-    //   path: "/create-budget",
-    //   element: <CreateBudget/>,
-    // },
+import Layout from "./Common/Layout.jsx";
+import Signin from "./Pages/auth/Signin.jsx";
+import Signup from "./Pages/auth/Signup.jsx";
+import Budget from "./Pages/Budget.jsx";
+import CreateBudget from "./Pages/CreateBudget.jsx";
+import Dashboard from "./Pages/Dashboard.jsx";
+import BudgetDetails from "./Pages/auth/BudgetDetails.jsx";
+import { AuthProvider } from "./Context/AuthContext.jsx";
+import ProtectedRoute from "./Utils/ProtectedRoute.jsx";
+import Signout from "./Pages/auth/Signout.jsx";
 
-      {
-      path: "/signin",
-      element: <Signin/>,
-    },
+const router = createBrowserRouter([
     {
-      path: "/signup",
-      element: <Signup/>,
-    },
-    {
-       path: "/sign-out",
-      element: <Signout/>,
-    },
-    {
-      element: <ProtectedRoute/>,
-      children:[
-        {
-          path: "/create-budget",
-          element: <CreateBudget/>,
-        },
-        {
-          path: "/budget/:budgetId",
-          element: <BudgetDetails/>,
-        }
-      ]
+        path: "/",
+        element: <Layout />,
+        children: [
+            {
+                index: true,
+                element: <Dashboard />
+            },
+            {
+                path: "budget",
+                element: <Budget />
+            },
+            {
+                path: "signin",
+                element: <Signin />
+            },
+            {
+                path: "signup",
+                element: <Signup />
+            },
+            {
+                path: "sign-out",
+                element: <Signout />
+            },
+            {
+                element: <ProtectedRoute />,
+                children: [
+                    {
+                        path: "create-budget",
+                        element: <CreateBudget />
+                    },
+                    {
+                        path: "budget/:budgetId",
+                        element: <BudgetDetails />
+                    }
+                ]
+            }
+        ]
     }
-  ]
-},
-  ]);
- return(
-  <>
-  <AuthProvider>
-    <RouterProvider router = {router} /> 
-  </AuthProvider>
-   </>
- );
-}
+]);
+
+const App = () => {
+    return (
+        <AuthProvider>
+            <RouterProvider router={router} />
+        </AuthProvider>
+    );
+};
+
 export default App;
