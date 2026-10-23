@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import Lottie from 'lottie-react'
-import signin from '../../lottie/signin.json'
+import signin from "../../Lottie/signin.json"
 import axios from "axios"
 import apiClient from '../../ApiClient/interceptor'
 import { useAuth } from "../../Context/AuthContext.jsx"
