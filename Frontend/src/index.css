@@ -2084,3 +2084,56 @@ main > form > button[type="submit"]:hover {
     width: 100%;
   }
 }
+
+/* Budget Listing Responsive Fix */
+
+.budget-page {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 40px 30px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.budget-page h1 {
+  width: 100%;
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.budget-card {
+  display: block;
+  width: 300px;
+  max-width: 100%;
+  margin: 12px auto;
+  flex-shrink: 0;
+}
+
+@media (max-width: 600px) {
+  .budget-page {
+    padding: 25px 16px;
+  }
+
+  .budget-page h1 {
+    font-size: 27px;
+    margin-bottom: 22px;
+  }
+
+  .budget-card {
+    width: 100%;
+    max-width: 350px;
+    min-height: 190px;
+    margin: 0 auto 18px;
+    padding: 22px;
+  }
+
+  .budget-card h2 {
+    font-size: 19px;
+  }
+
+  .budget-card p {
+    font-size: 15px;
+  }
+}
