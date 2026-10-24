@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import apiClient from "../ApiClient/interceptor";
 
@@ -40,14 +39,19 @@ const CreateBudget = () => {
   ];
 
   const getCategories = async () => {
+    setCategoryLoader(true);
+
     try {
       const response = await apiClient.get("/category/get");
-      setCategories(response.data.data || []);
+      const categoryList = Array.isArray(response.data.data)
+        ? response.data.data
+        : [];
+
+      setCategories(categoryList);
     } catch (error) {
       console.error("Get categories error:", error);
       setCategoryError(
-        error.response?.data?.message ||
-          "Unable to load categories."
+        error.response?.data?.message || "Unable to load categories."
       );
     } finally {
       setCategoryLoader(false);
@@ -81,8 +85,7 @@ const CreateBudget = () => {
 
     const alreadyExists = categories.some(
       (category) =>
-        category.category.toLowerCase() ===
-        categoryName.toLowerCase()
+        category.category.toLowerCase() === categoryName.toLowerCase()
     );
 
     if (alreadyExists) {
@@ -96,10 +99,9 @@ const CreateBudget = () => {
       setCategoryError("");
       setCategoryMessage("");
 
-      const response = await apiClient.post(
-        "/category/create",
-        { category: categoryName }
-      );
+      const response = await apiClient.post("/category/create", {
+        category: categoryName,
+      });
 
       const createdCategory = response.data.data;
 
@@ -121,7 +123,6 @@ const CreateBudget = () => {
       setCategoryMessage("Category created successfully!");
     } catch (error) {
       console.error("Create category error:", error);
-
       setCategoryError(
         error.response?.data?.message ||
           error.message ||
@@ -167,7 +168,6 @@ const CreateBudget = () => {
       setBudgetError("");
       setBudgetMessage("");
 
-      console.log("Selected category ID:", budgetData.category);
       await apiClient.post("/budget/create", {
         category: budgetData.category,
         amount: Number(budgetData.amount),
@@ -185,10 +185,8 @@ const CreateBudget = () => {
       setBudgetMessage("Budget created successfully!");
     } catch (error) {
       console.error("Create budget error:", error);
-
       setBudgetError(
-        error.response?.data?.message ||
-          "Unable to create budget."
+        error.response?.data?.message || "Unable to create budget."
       );
     } finally {
       setBudgetSubmitting(false);
@@ -204,39 +202,36 @@ const CreateBudget = () => {
         <div className="category">
           <label htmlFor="category">Category</label>
 
-          {categoryLoader ? (
-            <select id="category" disabled>
-              <option>Loading categories...</option>
-            </select>
-          ) : (
-            <select
-              id="category"
-              name="category"
-              value={budgetData.category}
-              onChange={handleChange}
-              required
-            >
-              <option value="">Select Category</option>
+          <select
+            id="category"
+            name="category"
+            value={budgetData.category}
+            onChange={handleChange}
+            disabled={categoryLoader}
+            required
+          >
+            <option value="">
+              {categoryLoader ? "Loading categories..." : "Select Category"}
+            </option>
 
-              {categories.map((category) => (
-                <option
-                  key={category._id}
-                  value={category._id}
-                >
-                  {category.category}
-                </option>
-              ))}
-            </select>
-          )}
+            {categories.map((category) => (
+              <option key={category._id} value={category._id}>
+                {category.category}
+              </option>
+            ))}
+          </select>
 
           {!categoryLoader && categories.length === 0 && (
-            <p>No categories available. Create one below.</p>
+            <p className="no-category-message">
+              No categories available. Create one below.
+            </p>
           )}
 
           <div className="createCategory">
             {!createCategory ? (
               <button
                 type="button"
+                className="create-category-button"
                 onClick={() => {
                   setCreateCategory(true);
                   setCategoryError("");
@@ -247,9 +242,7 @@ const CreateBudget = () => {
               </button>
             ) : (
               <div className="category-create-form">
-                <label htmlFor="newCategory">
-                  New Category Name
-                </label>
+                <label htmlFor="newCategory">New Category Name</label>
 
                 <input
                   id="newCategory"
@@ -262,38 +255,40 @@ const CreateBudget = () => {
                   required
                 />
 
-                <button
-                  type="button"
-                  onClick={handleCategorySubmit}
-                  disabled={categorySubmitting}
-                >
-                  {categorySubmitting ? "Saving..." : "Save Category"}
-                </button>
+                <div className="category-action-buttons">
+                  <button
+                    type="button"
+                    onClick={handleCategorySubmit}
+                    disabled={categorySubmitting}
+                  >
+                    {categorySubmitting ? "Saving..." : "Save Category"}
+                  </button>
 
-                <button
-                  type="button"
-                  onClick={() => {
-                    setCreateCategory(false);
-                    setCreateCategoryData({ category: "" });
-                    setCategoryError("");
-                    setCategoryMessage("");
-                  }}
-                  disabled={categorySubmitting}
-                >
-                  Cancel
-                </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCreateCategory(false);
+                      setCreateCategoryData({ category: "" });
+                      setCategoryError("");
+                      setCategoryMessage("");
+                    }}
+                    disabled={categorySubmitting}
+                  >
+                    Cancel
+                  </button>
+                </div>
               </div>
             )}
           </div>
 
           {categoryMessage && (
-            <p role="status" style={{ color: "green" }}>
+            <p role="status" className="category-success-message">
               {categoryMessage}
             </p>
           )}
 
           {categoryError && (
-            <p role="alert" style={{ color: "red" }}>
+            <p role="alert" className="category-error-message">
               {categoryError}
             </p>
           )}
@@ -301,7 +296,6 @@ const CreateBudget = () => {
 
         <div className="amount">
           <label htmlFor="amount">Budget Amount (₹)</label>
-
           <input
             id="amount"
             type="number"
@@ -317,7 +311,6 @@ const CreateBudget = () => {
 
         <div className="month">
           <label htmlFor="month">Month</label>
-
           <select
             id="month"
             name="month"
@@ -326,7 +319,6 @@ const CreateBudget = () => {
             required
           >
             <option value="">Select Month</option>
-
             {months.map((month) => (
               <option key={month.value} value={month.value}>
                 {month.name}
@@ -337,7 +329,6 @@ const CreateBudget = () => {
 
         <div className="year">
           <label htmlFor="year">Year</label>
-
           <input
             id="year"
             type="number"
@@ -352,13 +343,13 @@ const CreateBudget = () => {
         </div>
 
         {budgetMessage && (
-          <p role="status" style={{ color: "green" }}>
+          <p role="status" className="budget-success-message">
             {budgetMessage}
           </p>
         )}
 
         {budgetError && (
-          <p role="alert" style={{ color: "red" }}>
+          <p role="alert" className="budget-error-message">
             {budgetError}
           </p>
         )}

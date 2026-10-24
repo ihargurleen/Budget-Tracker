@@ -2137,3 +2137,76 @@ main > form > button[type="submit"]:hover {
     font-size: 15px;
   }
 }
+
+.create-budget-container .category {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 24px;
+  width: 100%;
+}
+
+.create-budget-container .no-category-message {
+  position: static;
+  margin: 0;
+  padding: 12px 14px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.create-budget-container .createCategory {
+  position: static;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  width: 100%;
+  margin-top: 4px;
+}
+
+.create-budget-container .create-category-button {
+  position: static;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  max-width: 100%;
+  padding: 10px 18px;
+  white-space: normal;
+  line-height: 1.4;
+}
+
+.create-budget-container .category-create-form {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+  width: 100%;
+}
+
+.create-budget-container .category-create-form input {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.create-budget-container .category-action-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.create-budget-container .category-success-message,
+.create-budget-container .budget-success-message {
+  color: #15803d;
+}
+
+.create-budget-container .category-error-message,
+.create-budget-container .budget-error-message {
+  color: #dc2626;
+}
+
+@media (max-width: 480px) {
+  .create-budget-container .category-action-buttons button {
+    flex: 1 1 120px;
+  }
+}
