@@ -17,12 +17,13 @@ dotenv.config();
 
  //middleware
  app.use(cors({
-    origin: ["http://localhost:5174",
-      "https://budget-tracker-one-mocha-74.vercel.app"
+    origin: [
+        "http://localhost:5173",
+        "http://localhost:5174",
+        "https://budget-tracker-one-mocha-74.vercel.app"
     ],
     credentials: true,
- })
-);
+}));
 app.use(express.json());
 app.use(cookieParser());
 
