@@ -20,8 +20,7 @@ const Signup = () => {
 
     const signupAxios = async (loginData) => {
         try {
-            const Response = await apiClient.post("auth/signup", formData,
-            );
+            const Response = await apiClient.post("auth/signup", loginData);
             console.log(Response, "Test");
             setFormData({
                 userName: "",
@@ -29,7 +28,8 @@ const Signup = () => {
                 password: ""
             });
         } catch (err) {
-            console.log(err.message);
+            console.log("Status:", err.response?.status);
+            console.log("Backend error:", err.response?.data);
         }
     }
 
