@@ -1,66 +1,89 @@
-import React, { useState } from 'react'
-import Lottie from 'lottie-react'
-import signin from "../../Lottie/signin.json"
-import axios from "axios"
-import apiClient from '../../ApiClient/interceptor'
-import { useAuth } from "../../Context/AuthContext.jsx"
-const Signin = () => {
-    // const LottieComponent = Lottie.default || Lottie
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../Context/AuthContext.jsx";
 
-    const {login, setUser} = useAuth()
+const Signin = () => {
+    const { login } = useAuth();
+    const navigate = useNavigate();
+
     const [loginData, setLoginData] = useState({
         email: "",
         password: "",
-    })
+    });
+
+    const [error, setError] = useState("");
+    const [loading, setLoading] = useState(false);
+
     const handleChange = (e) => {
         setLoginData({
             ...loginData,
-            [e.target.name]: e.target.value
-        })
-    }
-    const signAxios = async (loginData) => {
-        try {
-          const response= await login(loginData)
-            setUser(response)
-        } catch (err) {
-            console.log(err.message)
-        }
-    }
+            [e.target.name]: e.target.value,
+        });
+    };
 
-
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        console.log(loginData);
-        signAxios(loginData);
-        setLoginData({
-            email: "",
-            password: "",
-        })
-    }
-    const LottieComponent = Lottie.default || Lottie
+        setError("");
+        setLoading(true);
+
+        try {
+            const user = await login(loginData);
+
+            if (user) {
+                navigate("/", { replace: true });
+            } else {
+                setError("Login failed. Please check your email and password.");
+            }
+        } catch (err) {
+            setError(
+                err.response?.data?.message ||
+                "Login failed. Please try again."
+            );
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
-        <>
-            <div id='signin'>
-                <div>
-                    <form onSubmit={handleSubmit} id='form'>
-                        <label>Email</label><br />
-                        <input type="email" name='email' onChange={handleChange} value={loginData.email} />
-                        <br />
-                        <label>Password</label><br />
-                        <input type="password" name='password' onChange={handleChange} value={loginData.password} />
-                        <br /><br />
-                        <input type="submit" value="Login" />
-                    </form>
-                    <div>
-                        <div id='lottie-signin'>
-                            <LottieComponent animationData={signin} loop={true} />
-                        </div>
-                    </div>
-                </div>
+        <div id="signin">
+            <div>
+                <form onSubmit={handleSubmit} id="form">
+                    <label>Email</label>
+                    <br />
+                    <input
+                        type="email"
+                        name="email"
+                        value={loginData.email}
+                        onChange={handleChange}
+                        required
+                    />
 
+                    <br />
+
+                    <label>Password</label>
+                    <br />
+                    <input
+                        type="password"
+                        name="password"
+                        value={loginData.password}
+                        onChange={handleChange}
+                        required
+                    />
+
+                    <br />
+                    <br />
+
+                    {error && <p>{error}</p>}
+
+                    <input
+                        type="submit"
+                        value={loading ? "Signing in..." : "Login"}
+                        disabled={loading}
+                    />
+                </form>
             </div>
-        </>
-    )
-}
+        </div>
+    );
+};
 
-export default Signin
+export default Signin;

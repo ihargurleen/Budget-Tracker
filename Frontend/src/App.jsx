@@ -16,14 +16,6 @@ const router = createBrowserRouter([
         element: <Layout />,
         children: [
             {
-                index: true,
-                element: <Dashboard />
-            },
-            {
-                path: "budget",
-                element: <Budget />
-            },
-            {
                 path: "signin",
                 element: <Signin />
             },
@@ -38,6 +30,14 @@ const router = createBrowserRouter([
             {
                 element: <ProtectedRoute />,
                 children: [
+                    {
+                        index: true,
+                        element: <Dashboard />
+                    },
+                    {
+                        path: "budget",
+                        element: <Budget />
+                    },
                     {
                         path: "create-budget",
                         element: <CreateBudget />
