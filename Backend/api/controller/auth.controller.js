@@ -110,16 +110,21 @@ export const getUser =  async(req, res ,next) => {
   });
  }
 };
-export const signout = async (req, res, next) => {
+export const signout = async (req, res) => {
     try {
-        return res.clearCookie("token").status(200).json({
-            message: "signout successfully"
-        })
+        res.clearCookie("token", {
+            httpOnly: true,
+            secure: true,
+            sameSite: "none",
+            path: "/"
+        });
 
+        return res.status(200).json({
+            message: "Signout successfully"
+        });
     } catch (err) {
         return res.status(500).json({
-            message: err.message,
-        })
-
+            message: err.message
+        });
     }
-}
+};

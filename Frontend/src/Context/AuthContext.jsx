@@ -7,18 +7,15 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true)
 
   const getUser = async () => {
-    try {
-      const response = await apiClient.get("auth/get-user");
-      setUser(response.data.data);
-    } catch (err) {
-      console.log(err.message)
-    }finally{
-      setLoading(false)
-    }
-  };
-  useEffect(() => {
-    getUser();
-  }, []);
+  try {
+    const response = await apiClient.get("/auth/get-user");
+    setUser(response.data.data);
+  } catch (err) {
+    setUser(null);
+  } finally {
+    setLoading(false);
+  }
+};
 
   const login = async (LoginData) => {
     try {
@@ -40,7 +37,7 @@ const signout = async () => {
 
 
   const value = {
-    user, setUser, login,  isAuthenticated : !!user,loading
+    user, setUser, login, signout,  isAuthenticated : !!user,loading
   };
   return (
     <>
