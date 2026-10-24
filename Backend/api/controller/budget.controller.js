@@ -1,12 +1,37 @@
+
 import mongoose from "mongoose";
 import { Budget } from "../modal/budget.schema.js";
+import { Category } from "../modal/category.schema.js";
 
+const isValidMonth = (month) => {
+  const value = Number(month);
+  return Number.isInteger(value) && value >= 1 && value <= 12;
+};
+
+const isValidYear = (year) => {
+  const value = Number(year);
+  return Number.isInteger(value) && value >= 2000 && value <= 2100;
+};
+
+const isValidAmount = (amount) => {
+  return (
+    amount !== null &&
+    amount !== "" &&
+    Number.isFinite(Number(amount)) &&
+    Number(amount) > 0
+  );
+};
 
 export const createBudget = async (req, res) => {
   try {
     const { category, amount, month, year } = req.body;
 
-    if (!category || amount === undefined || !month || !year) {
+    if (
+      category === undefined ||
+      amount === undefined ||
+      month === undefined ||
+      year === undefined
+    ) {
       return res.status(400).json({
         message: "All fields are required",
       });
@@ -14,21 +39,36 @@ export const createBudget = async (req, res) => {
 
     if (!mongoose.isValidObjectId(category)) {
       return res.status(400).json({
-        message: "Invalid category ID. Please select a valid category.",
+        message: "Invalid category ID",
       });
     }
 
-    if (!Number.isFinite(Number(amount)) || Number(amount) <= 0) {
+    if (!isValidAmount(amount)) {
       return res.status(400).json({
         message: "Amount must be greater than zero",
       });
     }
 
-    const categoryExists = await mongoose.model("Category").findById(category);
+    if (!isValidMonth(month)) {
+      return res.status(400).json({
+        message: "Month must be between 1 and 12",
+      });
+    }
+
+    if (!isValidYear(year)) {
+      return res.status(400).json({
+        message: "Please enter a valid year",
+      });
+    }
+
+    const categoryExists = await Category.findOne({
+      _id: category,
+      user: req.user._id,
+    });
 
     if (!categoryExists) {
       return res.status(404).json({
-        message: "Category not found. Please create or select a category.",
+        message: "Category not found or you do not have access to it",
       });
     }
 
@@ -58,73 +98,98 @@ export const createBudget = async (req, res) => {
       data: budgetData,
     });
   } catch (err) {
+    if (err.code === 11000) {
+      return res.status(400).json({
+        message: "Budget already exists for this category and month",
+      });
+    }
+
+    console.error("Create budget error:", err.message);
+
     return res.status(500).json({
-      message: err.message,
+      message: "Unable to create budget",
     });
   }
 };
 
-
-export const getBudget = async (req, res, next) => {
+export const getBudget = async (req, res) => {
   try {
-    const budgetData = await Budget.find({user: req.user._id }).populate([
+    const budgetData = await Budget.find({
+      user: req.user._id,
+    }).populate([
       {
-      path:"user",
-      select:"-password",
-    },
-    {
-      path:"category",
-    },
-  ]);
-    if (budgetData.length === 0) {
-      return res.status(404).json({
-        message: "No budget found for this user"
-      
-      });
-    }
+        path: "user",
+        select: "-password",
+      },
+      {
+        path: "category",
+      },
+    ]);
+
     return res.status(200).json({
-      message: "Budget get successfully",
-      data: budgetData
+      message: "Budgets fetched successfully",
+      data: budgetData,
     });
   } catch (err) {
+    console.error("Get budgets error:", err.message);
+
     return res.status(500).json({
-      message: err.message
+      message: "Unable to fetch budgets",
     });
   }
-}
+};
 
-export const getBudgetById = async (req, res, next) =>{
-  try{
-        const {id} = req.params;
-        const budget = await Budget.findOne({_id: id, user: req.user._id}).populate([
-          {
-            path: "user",
-            select: "-password",
-          },
-          {
-            path: "category",
-          },
-        ]);
+export const getBudgetById = async (req, res) => {
+  try {
+    const { id } = req.params;
 
-        if(!budget){
-          return res.status(403).json({
-            message: "Budget not found"
-        });
-      }
-          return res.status(200).json({
-          budget,
-          });
-  }catch(err){
+    if (!mongoose.isValidObjectId(id)) {
+      return res.status(400).json({
+        message: "Invalid budget ID",
+      });
+    }
+
+    const budget = await Budget.findOne({
+      _id: id,
+      user: req.user._id,
+    }).populate([
+      {
+        path: "user",
+        select: "-password",
+      },
+      {
+        path: "category",
+      },
+    ]);
+
+    if (!budget) {
+      return res.status(404).json({
+        message: "Budget not found",
+      });
+    }
+
+    return res.status(200).json({
+      budget,
+    });
+  } catch (err) {
+    console.error("Get budget error:", err.message);
+
     return res.status(500).json({
-      message: err.message
+      message: "Unable to fetch budget",
     });
   }
-}
+};
 
 export const updateBudget = async (req, res) => {
   try {
     const { id } = req.params;
     const { category, amount, month, year } = req.body;
+
+    if (!mongoose.isValidObjectId(id)) {
+      return res.status(400).json({
+        message: "Invalid budget ID",
+      });
+    }
 
     const budget = await Budget.findOne({
       _id: id,
@@ -148,16 +213,63 @@ export const updateBudget = async (req, res) => {
       });
     }
 
-    const updatedCategory = category ?? budget.category;
-    const updatedMonth = month ?? budget.month;
-    const updatedYear = year ?? budget.year;
+    if (category !== undefined) {
+      if (!mongoose.isValidObjectId(category)) {
+        return res.status(400).json({
+          message: "Invalid category ID",
+        });
+      }
+
+      const categoryExists = await Category.findOne({
+        _id: category,
+        user: req.user._id,
+      });
+
+      if (!categoryExists) {
+        return res.status(404).json({
+          message: "Category not found or you do not have access to it",
+        });
+      }
+
+      budget.category = category;
+    }
+
+    if (amount !== undefined) {
+      if (!isValidAmount(amount)) {
+        return res.status(400).json({
+          message: "Amount must be greater than zero",
+        });
+      }
+
+      budget.amount = Number(amount);
+    }
+
+    if (month !== undefined) {
+      if (!isValidMonth(month)) {
+        return res.status(400).json({
+          message: "Month must be between 1 and 12",
+        });
+      }
+
+      budget.month = Number(month);
+    }
+
+    if (year !== undefined) {
+      if (!isValidYear(year)) {
+        return res.status(400).json({
+          message: "Please enter a valid year",
+        });
+      }
+
+      budget.year = Number(year);
+    }
 
     const existingBudget = await Budget.findOne({
-      _id: { $ne: id },
+      _id: { $ne: budget._id },
       user: req.user._id,
-      category: updatedCategory,
-      month: updatedMonth,
-      year: updatedYear,
+      category: budget.category,
+      month: budget.month,
+      year: budget.year,
     });
 
     if (existingBudget) {
@@ -166,19 +278,6 @@ export const updateBudget = async (req, res) => {
       });
     }
 
-    if (amount !== undefined) {
-      if (!Number.isFinite(Number(amount)) || Number(amount) <= 0) {
-        return res.status(400).json({
-          message: "Amount must be greater than zero",
-        });
-      }
-      budget.amount = Number(amount);
-    }
-
-    if (category !== undefined) budget.category = category;
-    if (month !== undefined) budget.month = month;
-    if (year !== undefined) budget.year = year;
-
     await budget.save();
 
     return res.status(200).json({
@@ -186,8 +285,16 @@ export const updateBudget = async (req, res) => {
       data: budget,
     });
   } catch (err) {
+    if (err.code === 11000) {
+      return res.status(400).json({
+        message: "Budget already exists for this category and month",
+      });
+    }
+
+    console.error("Update budget error:", err.message);
+
     return res.status(500).json({
-      message: err.message,
+      message: "Unable to update budget",
     });
   }
 };
@@ -195,6 +302,12 @@ export const updateBudget = async (req, res) => {
 export const deleteBudget = async (req, res) => {
   try {
     const { id } = req.params;
+
+    if (!mongoose.isValidObjectId(id)) {
+      return res.status(400).json({
+        message: "Invalid budget ID",
+      });
+    }
 
     const budget = await Budget.findOneAndDelete({
       _id: id,
@@ -211,8 +324,10 @@ export const deleteBudget = async (req, res) => {
       message: "Budget deleted successfully",
     });
   } catch (err) {
+    console.error("Delete budget error:", err.message);
+
     return res.status(500).json({
-      message: err.message,
+      message: "Unable to delete budget",
     });
   }
 };

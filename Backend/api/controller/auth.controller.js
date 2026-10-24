@@ -5,7 +5,7 @@ import { genToken } from "../util/genToken.js";
 export const signup = async (req,res,next ) => {
     try{
       const {userName,email,password} = req.body;
-      console.log(req.body)
+      // console.log(req.body)
       if(!userName|| !email || !password){
         return res.status(400).json(" All fields are required ");
       }
@@ -62,7 +62,7 @@ export const signin = async (req,res,next ) => {
 } 
    const token = await genToken(user._id,user.userName,user.email);
 
-   console.log(token , "gur")
+  //  console.log(token , "gur")
 
 
 return res.status(200).cookie("token",token,{
